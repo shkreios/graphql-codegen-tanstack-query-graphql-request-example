@@ -1,5 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { babelOptimizerPlugin } from "@graphql-codegen/client-preset";
 
 export default defineConfig({
   build: {
@@ -8,5 +9,16 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [
+          [
+            babelOptimizerPlugin,
+            { gqlTagName: "graphql", artifactDirectory: "./src/gql" },
+          ],
+        ],
+      },
+    }),
+  ],
 });
