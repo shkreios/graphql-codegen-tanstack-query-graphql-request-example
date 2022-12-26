@@ -1,6 +1,6 @@
-# Example
+# tanstack-query-example-react-basic-graphql-request
 
 To run this example:
 
-- `npm install`
-- `npm run dev`
+- `yarn install`
+- `yarn run start`
