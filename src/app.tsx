@@ -3,17 +3,20 @@ import {
   QueryClientProvider,
   useQuery,
   useQueryClient,
+  QueryFunction,
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { gql, request } from "graphql-request";
-import React, { Dispatch, FC, useState } from "react";
+import { request, GraphQLClient } from "graphql-request";
+import { Dispatch, FC, useMemo, useState } from "react";
+import { isTruthy } from "./utils/isTruthy";
+import { graphql } from "./gql/gql";
 
 const endpoint = "https://graphqlzero.almansi.me/api";
 
 const queryClient = new QueryClient();
 
 export const App = () => {
-  const [postId, setPostId] = useState(-1);
+  const [postId, setPostId] = useState<string | null | undefined>(null);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -27,7 +30,7 @@ export const App = () => {
           loading sequences)
         </strong>
       </p>
-      {postId > -1 ? (
+      {!!postId ? (
         <Post postId={postId} setPostId={setPostId} />
       ) : (
         <Posts setPostId={setPostId} />
@@ -37,35 +40,30 @@ export const App = () => {
   );
 };
 
-const usePosts = () => {
-  return useQuery({
-    queryKey: ["posts"],
-    queryFn: async () => {
-      const {
-        posts: { data },
-      } = await request(
-        endpoint,
-        gql`
-          query {
-            posts {
-              data {
-                id
-                title
-              }
-            }
+const graphQLClient = new GraphQLClient(endpoint, {});
+
+const getPosts = (async ({ signal }) => {
+  const res = await graphQLClient.request({
+    document: graphql(/* GraphQL */ `
+      query Posts {
+        posts {
+          data {
+            id
+            title
           }
-        `
-      );
-      return data;
-    },
+        }
+      }
+    `),
+    signal,
   });
-};
+  return res.posts?.data?.filter(isTruthy);
+}) satisfies QueryFunction<unknown, string[]>;
 
 const Posts: FC<{
-  setPostId: Dispatch<React.SetStateAction<number>>;
+  setPostId: Dispatch<React.SetStateAction<string | null | undefined>>;
 }> = ({ setPostId }) => {
   const queryClient = useQueryClient();
-  const { status, data, error, isFetching } = usePosts();
+  const { status, data, error, isFetching } = useQuery(["posts"], getPosts);
 
   return (
     <div>
@@ -74,11 +72,13 @@ const Posts: FC<{
         {status === "loading" ? (
           "Loading..."
         ) : status === "error" ? (
-          <span>Error: {error.message}</span>
+          <span>
+            Error: {error instanceof Error ? error.message : `${error}`}
+          </span>
         ) : (
           <>
             <div>
-              {data.map((post) => (
+              {data?.map((post) => (
                 <p key={post.id}>
                   <a
                     onClick={() => setPostId(post.id)}
@@ -107,53 +107,56 @@ const Posts: FC<{
   );
 };
 
-const usePost = (postId: number) => {
-  return useQuery(
-    ["post", postId],
-    async () => {
-      const { post } = await request(
-        endpoint,
-        gql`
-        query {
-          post(id: ${postId}) {
-            id
-            title
-            body
-          }
+const getPost = (async ({ signal, queryKey }) => {
+  const { post } = await request(
+    endpoint,
+    graphql(/* GraphQL */ `
+      query Post($id: ID!) {
+        post(id: $id) {
+          id
+          title
+          body
         }
-        `
-      );
+      }
+    `),
+    {
+      id: queryKey[1],
+    }
+  );
 
-      return post;
-    },
+  return post;
+}) satisfies QueryFunction<unknown, [string, string]>;
+
+const Post: FC<{
+  postId: string;
+  setPostId: Dispatch<React.SetStateAction<string | null | undefined>>;
+}> = ({ postId, setPostId }) => {
+  const { status, data, error, isFetching } = useQuery(
+    ["post", postId],
+    getPost,
     {
       enabled: !!postId,
     }
   );
-};
-
-const Post: FC<{
-  postId: number;
-  setPostId: Dispatch<React.SetStateAction<number>>;
-}> = ({ postId, setPostId }) => {
-  const { status, data, error, isFetching } = usePost(postId);
 
   return (
     <div>
       <div>
-        <a onClick={() => setPostId(-1)} href="#">
+        <a onClick={() => setPostId(null)} href="#">
           Back
         </a>
       </div>
       {!postId || status === "loading" ? (
         "Loading..."
       ) : status === "error" ? (
-        <span>Error: {error.message}</span>
+        <span>
+          Error: {error instanceof Error ? error.message : `${error}`}
+        </span>
       ) : (
         <>
-          <h1>{data.title}</h1>
+          <h1>{data?.title}</h1>
           <div>
-            <p>{data.body}</p>
+            <p>{data?.body}</p>
           </div>
           <div>{isFetching ? "Background Updating..." : " "}</div>
         </>

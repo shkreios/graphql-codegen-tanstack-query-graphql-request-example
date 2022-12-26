@@ -1,3 +1,4 @@
+import { App } from "./app";
 import ReactDOM from "react-dom/client";
 
 const rootElement = document.getElementById("root");
