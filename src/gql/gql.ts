@@ -13,14 +13,19 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel-plugin for production.
  */
 const documents = {
-    "\n          query Post($id: ID!) {\n            post(id: $id) {\n              id\n              title\n              body\n            }\n          }\n        ": types.PostDocument,
+    "\n  fragment PostFragment on Post {\n    id\n    title\n    body\n  }\n": types.PostFragmentFragmentDoc,
+    "\n          query Post($id: ID!) {\n            post(id: $id) {\n              ...PostFragment\n            }\n          }\n        ": types.PostDocument,
     "\n          query Posts {\n            posts {\n              data {\n                id\n                title\n              }\n            }\n          }\n        ": types.PostsDocument,
 };
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n          query Post($id: ID!) {\n            post(id: $id) {\n              id\n              title\n              body\n            }\n          }\n        "): (typeof documents)["\n          query Post($id: ID!) {\n            post(id: $id) {\n              id\n              title\n              body\n            }\n          }\n        "];
+export function graphql(source: "\n  fragment PostFragment on Post {\n    id\n    title\n    body\n  }\n"): (typeof documents)["\n  fragment PostFragment on Post {\n    id\n    title\n    body\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n          query Post($id: ID!) {\n            post(id: $id) {\n              ...PostFragment\n            }\n          }\n        "): (typeof documents)["\n          query Post($id: ID!) {\n            post(id: $id) {\n              ...PostFragment\n            }\n          }\n        "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

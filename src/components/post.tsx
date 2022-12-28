@@ -1,7 +1,17 @@
 import { QueryFunction, useQuery } from "@tanstack/react-query";
 import { FC, Dispatch } from "react";
-import { graphql } from "../gql/gql";
+import { FragmentType, graphql, useFragment } from "../gql";
 import { graphQLClient } from "../graphqlClient";
+
+const PostFragment = graphql(/* GraphQL */ `
+  fragment PostFragment on Post {
+    id
+    title
+    body
+  }
+`);
+
+type Post = FragmentType<typeof PostFragment>;
 
 const Post: FC<{
   postId: string;
@@ -14,9 +24,7 @@ const Post: FC<{
         document: graphql(/* GraphQL */ `
           query Post($id: ID!) {
             post(id: $id) {
-              id
-              title
-              body
+              ...PostFragment
             }
           }
         `),
@@ -24,7 +32,9 @@ const Post: FC<{
         variables: { id: queryKey[1] },
       });
 
-      return post;
+      console.log("post", post);
+
+      return useFragment(PostFragment, post);
     },
     {
       enabled: !!postId,
