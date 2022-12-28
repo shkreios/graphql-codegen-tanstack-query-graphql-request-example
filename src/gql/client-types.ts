@@ -1,5 +1,6 @@
-/* eslint-disable */
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import { GraphQLClient } from 'graphql-request';
+import * as Dom from 'graphql-request/dist/types.dom';
+import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -12,7 +13,6 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  /** The `Upload` scalar type represents a file upload. */
   Upload: any;
 };
 
@@ -522,23 +522,74 @@ export type UsersPage = {
   meta?: Maybe<PageMetadata>;
 };
 
-export type PostFragmentFragment = { __typename?: 'Post', id?: string | null, title?: string | null, body?: string | null } & { ' $fragmentName'?: 'PostFragmentFragment' };
+export type PostFragmentFragment = { __typename?: 'Post', id?: string | null, title?: string | null, body?: string | null };
 
-export type PostQueryVariables = Exact<{
+export type GetPostQueryVariables = Exact<{
   id: Scalars['ID'];
 }>;
 
 
-export type PostQuery = { __typename?: 'Query', post?: (
-    { __typename?: 'Post' }
-    & { ' $fragmentRefs'?: { 'PostFragmentFragment': PostFragmentFragment } }
-  ) | null };
+export type GetPostQuery = { __typename?: 'Query', post?: { __typename?: 'Post', id?: string | null, title?: string | null, body?: string | null } | null };
 
-export type PostsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetPostsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts?: { __typename?: 'PostsPage', data?: Array<{ __typename?: 'Post', id?: string | null, title?: string | null } | null> | null } | null };
+export type GetPostsQuery = { __typename?: 'Query', posts?: { __typename?: 'PostsPage', data?: Array<{ __typename?: 'Post', id?: string | null, title?: string | null } | null> | null } | null };
 
-export const PostFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PostFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Post"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"body"}}]}}]} as unknown as DocumentNode<PostFragmentFragment, unknown>;
-export const PostDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Post"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"post"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PostFragment"}}]}}]}},...PostFragmentFragmentDoc.definitions]} as unknown as DocumentNode<PostQuery, PostQueryVariables>;
-export const PostsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Posts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"posts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]}}]} as unknown as DocumentNode<PostsQuery, PostsQueryVariables>;
+export const PostFragmentFragmentDoc = gql`
+    fragment PostFragment on Post {
+  id
+  title
+  body
+}
+    `;
+export const GetPostDocument = gql`
+    query GetPost($id: ID!) {
+  post(id: $id) {
+    ...PostFragment
+  }
+}
+    ${PostFragmentFragmentDoc}`;
+export const GetPostsDocument = gql`
+    query GetPosts {
+  posts {
+    data {
+      id
+      title
+    }
+  }
+}
+    `;
+
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
+
+
+const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
+
+export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
+  return {
+    GetPost(variables: GetPostQueryVariables, signal?: AbortSignal, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetPostQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetPostQuery>({
+          document: GetPostDocument,
+          signal: signal as Dom.RequestInit['signal'],
+          variables,
+          requestHeaders: {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          },
+        }), 'GetPost', 'query');
+    },
+    GetPosts(variables?: GetPostsQueryVariables, signal?: AbortSignal, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetPostsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetPostsQuery>({
+          document: GetPostsDocument,
+          signal: signal as Dom.RequestInit['signal'],
+          variables,
+          requestHeaders: {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          },
+        }), 'GetPosts', 'query');
+    }
+  };
+}
+export type Sdk = ReturnType<typeof getSdk>;

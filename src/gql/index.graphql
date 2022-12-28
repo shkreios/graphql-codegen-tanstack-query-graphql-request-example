@@ -1,0 +1,19 @@
+fragment PostFragment on Post {
+  id
+  title
+  body
+}
+
+query GetPost($id: ID!) {
+  post(id: $id) {
+    ...PostFragment
+  }
+}
+query GetPosts {
+  posts {
+    data {
+      id
+      title
+    }
+  }
+}

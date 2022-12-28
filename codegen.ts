@@ -2,11 +2,14 @@ import type { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
   schema: "https://graphqlzero.almansi.me/api",
-  documents: ["src/**/*.tsx"],
+  documents: ["src/**/*.graphql"],
   generates: {
-    "./src/gql/": {
-      preset: "client",
-      plugins: [],
+    "./src/gql/client-types.ts": {
+      plugins: [
+        "typescript",
+        "typescript-operations",
+        "typescript-graphql-request",
+      ],
     },
   },
 };

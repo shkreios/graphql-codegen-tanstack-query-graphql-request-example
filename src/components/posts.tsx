@@ -1,8 +1,7 @@
-import { QueryFunction, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dispatch, FC } from "react";
+import { sdk } from "../graphqlClient";
 import { isTruthy } from "../utils/isTruthy";
-import { graphql } from "../gql/gql";
-import { graphQLClient } from "../graphqlClient";
 
 const Posts: FC<{
   setPostId: Dispatch<React.SetStateAction<string | null | undefined>>;
@@ -11,20 +10,8 @@ const Posts: FC<{
   const { status, data, error, isFetching } = useQuery(
     ["posts"],
     async ({ signal }) => {
-      const res = await graphQLClient.request({
-        document: graphql(/* GraphQL */ `
-          query Posts {
-            posts {
-              data {
-                id
-                title
-              }
-            }
-          }
-        `),
-        signal,
-      });
-      return res.posts?.data?.filter(isTruthy);
+      const { posts } = await sdk.GetPosts({}, signal);
+      return posts?.data?.filter(isTruthy);
     }
   );
 

@@ -1,17 +1,6 @@
-import { QueryFunction, useQuery } from "@tanstack/react-query";
-import { FC, Dispatch } from "react";
-import { FragmentType, graphql, useFragment } from "../gql";
-import { graphQLClient } from "../graphqlClient";
-
-const PostFragment = graphql(/* GraphQL */ `
-  fragment PostFragment on Post {
-    id
-    title
-    body
-  }
-`);
-
-type Post = FragmentType<typeof PostFragment>;
+import { useQuery } from "@tanstack/react-query";
+import { Dispatch, FC } from "react";
+import { sdk } from "../graphqlClient";
 
 const Post: FC<{
   postId: string;
@@ -20,21 +9,8 @@ const Post: FC<{
   const { status, data, error, isFetching } = useQuery(
     ["post", postId],
     async ({ signal, queryKey }) => {
-      const { post } = await graphQLClient.request({
-        document: graphql(/* GraphQL */ `
-          query Post($id: ID!) {
-            post(id: $id) {
-              ...PostFragment
-            }
-          }
-        `),
-        signal,
-        variables: { id: queryKey[1] },
-      });
-
-      console.log("post", post);
-
-      return useFragment(PostFragment, post);
+      const { post } = await sdk.GetPost({ id: queryKey[1] }, signal);
+      return post;
     },
     {
       enabled: !!postId,

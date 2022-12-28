@@ -1,0 +1,74 @@
+diff --git a/node_modules/@graphql-codegen/typescript-graphql-request/cjs/visitor.js b/node_modules/@graphql-codegen/typescript-graphql-request/cjs/visitor.js
+index cd53f2b..28ed7b8 100644
+--- a/node_modules/@graphql-codegen/typescript-graphql-request/cjs/visitor.js
++++ b/node_modules/@graphql-codegen/typescript-graphql-request/cjs/visitor.js
+@@ -68,12 +68,28 @@ class GraphQLRequestVisitor extends visitor_plugin_common_1.ClientSideBaseVisito
+                     docArg = `${docVarName}String`;
+                     extraVariables.push(`const ${docArg} = print(${docVarName});`);
+                 }
+-                return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, requestHeaders?: Dom.RequestInit["headers"]): Promise<{ data: ${o.operationResultType}; extensions?: ${this.config.extensionsType}; headers: Dom.Headers; status: number; }> {
+-    return withWrapper((wrappedRequestHeaders) => client.rawRequest<${o.operationResultType}>(${docArg}, variables, {...requestHeaders, ...wrappedRequestHeaders}), '${operationName}', '${operationType}');
++                return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, signal?: AbortSignal, requestHeaders?: Dom.RequestInit["headers"]): Promise<{ data: ${o.operationResultType}; extensions?: ${this.config.extensionsType}; headers: Dom.Headers; status: number; }> {
++    return withWrapper((wrappedRequestHeaders) => client.rawRequest<${o.operationResultType}>({
++        query: ${docArg},
++        signal: signal as Dom.RequestInit['signal'],
++        variables,
++        requestHeaders: {
++          ...requestHeaders,
++          ...wrappedRequestHeaders,
++        },
++      }), '${operationName}', '${operationType}');
+ }`;
+             }
+-            return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, requestHeaders?: Dom.RequestInit["headers"]): Promise<${o.operationResultType}> {
+-  return withWrapper((wrappedRequestHeaders) => client.request<${o.operationResultType}>(${docVarName}, variables, {...requestHeaders, ...wrappedRequestHeaders}), '${operationName}', '${operationType}');
++            return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, signal?: AbortSignal, requestHeaders?: Dom.RequestInit["headers"]): Promise<${o.operationResultType}> {
++  return withWrapper((wrappedRequestHeaders) => client.request<${o.operationResultType}>({
++      document: ${docVarName},
++      signal: signal as Dom.RequestInit['signal'],
++      variables,
++      requestHeaders: {
++        ...requestHeaders,
++        ...wrappedRequestHeaders,
++      },
++    }), '${operationName}', '${operationType}');
+ }`;
+         })
+             .filter(Boolean)
+diff --git a/node_modules/@graphql-codegen/typescript-graphql-request/esm/visitor.js b/node_modules/@graphql-codegen/typescript-graphql-request/esm/visitor.js
+index 02156d6..0bfd64c 100644
+--- a/node_modules/@graphql-codegen/typescript-graphql-request/esm/visitor.js
++++ b/node_modules/@graphql-codegen/typescript-graphql-request/esm/visitor.js
+@@ -64,12 +64,28 @@ export class GraphQLRequestVisitor extends ClientSideBaseVisitor {
+                     docArg = `${docVarName}String`;
+                     extraVariables.push(`const ${docArg} = print(${docVarName});`);
+                 }
+-                return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, requestHeaders?: Dom.RequestInit["headers"]): Promise<{ data: ${o.operationResultType}; extensions?: ${this.config.extensionsType}; headers: Dom.Headers; status: number; }> {
+-    return withWrapper((wrappedRequestHeaders) => client.rawRequest<${o.operationResultType}>(${docArg}, variables, {...requestHeaders, ...wrappedRequestHeaders}), '${operationName}', '${operationType}');
++                return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, signal?: AbortSignal, requestHeaders?: Dom.RequestInit["headers"]): Promise<{ data: ${o.operationResultType}; extensions?: ${this.config.extensionsType}; headers: Dom.Headers; status: number; }> {
++    return withWrapper((wrappedRequestHeaders) => client.rawRequest<${o.operationResultType}>({
++        query: ${docArg},
++        signal: signal as Dom.RequestInit['signal'],
++        variables,
++        requestHeaders: {
++          ...requestHeaders,
++          ...wrappedRequestHeaders,
++        },
++      }), '${operationName}', '${operationType}');
+ }`;
+             }
+-            return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, requestHeaders?: Dom.RequestInit["headers"]): Promise<${o.operationResultType}> {
+-  return withWrapper((wrappedRequestHeaders) => client.request<${o.operationResultType}>(${docVarName}, variables, {...requestHeaders, ...wrappedRequestHeaders}), '${operationName}', '${operationType}');
++            return `${operationName}(variables${optionalVariables ? '?' : ''}: ${o.operationVariablesTypes}, signal?: AbortSignal, requestHeaders?: Dom.RequestInit["headers"]): Promise<${o.operationResultType}> {
++  return withWrapper((wrappedRequestHeaders) => client.request<${o.operationResultType}>({
++      document: ${docVarName},
++      signal: signal as Dom.RequestInit['signal'],
++      variables,
++      requestHeaders: {
++        ...requestHeaders,
++        ...wrappedRequestHeaders,
++      },
++    }), '${operationName}', '${operationType}');
+ }`;
+         })
+             .filter(Boolean)
